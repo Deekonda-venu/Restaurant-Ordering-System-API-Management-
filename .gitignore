@@ -1,0 +1,21 @@
+# Java and Maven build output
+**/target/
+*.class
+
+# IDE and editor settings
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.vscode/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# Local environment overrides and secrets
+.env
+.env.*
+application-local.properties
