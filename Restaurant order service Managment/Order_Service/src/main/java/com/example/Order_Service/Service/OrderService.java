@@ -221,15 +221,15 @@ public class OrderService {
         return createOrderResponse(saved);
     }
 
-    public OrderStatusResponse getOrderStatus(Long orderId) {
-        OrderDetails orderDetails = orderDetailesRepo.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        OrderStatusResponse response = new OrderStatusResponse();
-        response.setOrderId(orderDetails.getId());
-        response.setStatus(orderDetails.getStatus());
-        response.setUpdatedAt(orderDetails.getUpdatedAt());
-        return response;
-    }
+//    public OrderStatusResponse getOrderStatus(Long orderId) {
+//        OrderDetails orderDetails = orderDetailesRepo.findById(orderId)
+//                .orElseThrow(() -> new RuntimeException("Order not found"));
+//
+//        OrderStatusResponse response = new OrderStatusResponse();
+//        response.setOrderId(orderDetails.getId());
+//        response.setStatus(orderDetails.getStatus());
+//        response.setUpdatedAt(orderDetails.getUpdatedAt());
+//        return response;
+//    }
 
 }

@@ -1,4 +1,7 @@
 package com.example.Payment_Service.Service;
+import com.example.Payment_Service.Clinet.OrderServiceClient;
+import com.example.Payment_Service.Event.PaymentEvent;
+import com.example.Payment_Service.Event.PaymentEventPublisher;
 
 import com.example.Payment_Service.Clinet.CustomerClinet;
 import com.example.Payment_Service.Model.PaymentDetails;
@@ -22,12 +25,32 @@ public class PaymentService {
     @Autowired
     private CustomerClinet customerClinet;
 
+    @Autowired
+    private OrderServiceClient orderServiceClient;
+
+    @Autowired
+    private PaymentEventPublisher paymentEventPublisher;
+
     public PaymentRespose createPayment(paymentRequestBody paymentRequestBody) {
 
-        // 1. validate customer exists
+        // 1. validate order exists before creating payment
+        if (paymentRequestBody.getOrderId() == null) {
+            throw new RuntimeException("Order id is required");
+        }
+        orderServiceClient.getOrderById(paymentRequestBody.getOrderId());
+
+        // 2. prevent duplicate successful payment on same order
+        List<PaymentDetails> existingPayments = paymentDetailsRepo.findByOrderId(paymentRequestBody.getOrderId());
+        boolean alreadyPaid = existingPayments.stream()
+                .anyMatch(payment -> "SUCCESS".equalsIgnoreCase(payment.getStatus()));
+        if (alreadyPaid) {
+            throw new RuntimeException("Payment already completed for this order");
+        }
+
+        // 3. validate customer exists
         CustomerRespose customer = customerClinet.getCustomerById(paymentRequestBody.getCustomerId());
 
-        // 2. build and persist payment
+        // 4. build and persist payment
         PaymentDetails payment = new PaymentDetails();
         payment.setOrderId(paymentRequestBody.getOrderId());
         payment.setCustomerId(customer.getId());
@@ -39,7 +62,25 @@ public class PaymentService {
         payment.setCreatedAt(LocalDateTime.now());
         PaymentDetails saved = paymentDetailsRepo.save(payment);
 
-        // 3. build response
+//        Kafka
+        PaymentEvent event = new PaymentEvent();
+
+        event.setEventType(
+                "SUCCESS".equalsIgnoreCase(saved.getStatus())
+                        ? "PAYMENT_SUCCESS"
+                        : "PAYMENT_FAILED"
+        );
+
+        event.setPaymentId(saved.getId());
+        event.setOrderId(saved.getOrderId());
+        event.setCustomerId(saved.getCustomerId());
+        event.setAmount(saved.getAmount());
+        event.setStatus(saved.getStatus());
+        event.setTransactionId(saved.getTransactionId());
+        event.setOccurredAt(LocalDateTime.now());
+
+        paymentEventPublisher.publish(event);
+        // 5. build response
         return toResponse(saved);
     }
 

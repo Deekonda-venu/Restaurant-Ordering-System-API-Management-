@@ -50,9 +50,9 @@ public class OrderController {
         return orderService.cancelOrder(orderId);
     }
 
-    @GetMapping("/orders/{orderId}/Currentstatus")
-    public OrderStatusResponse getOrderStatus(@PathVariable("orderId") Long orderId) {
-        return orderService.getOrderStatus(orderId);
-    }
+//    @GetMapping("/orders/{orderId}/Currentstatus")
+//    public OrderStatusResponse getOrderStatus(@PathVariable("orderId") Long orderId) {
+//        return orderService.getOrderStatus(orderId);
+//    }
 
 }
