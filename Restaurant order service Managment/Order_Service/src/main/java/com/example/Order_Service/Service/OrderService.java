@@ -1,4 +1,6 @@
 package com.example.Order_Service.Service;
+import com.example.Order_Service.Event.OrderEventPublisher;
+import com.example.Order_Service.Event.OrderPlacedEvent;
 
 import com.example.Order_Service.Response.CustomerByiDResponse;
 import com.example.Order_Service.Response.OrderdetailsforCustomer;
@@ -38,26 +40,32 @@ public class OrderService {
     private CustomerClinet customerClinet;
     @Autowired
     private Menuitemsclinet menuitemsclinet;
+    @Autowired
+    private OrderEventPublisher orderEventPublisher;
 
     public OrderResponse createOrder(OrderDetails orderDetails) {
 
-        // 1. validate customer
+        // 1. Validate that the customer exists before allowing this order.
+        // This prevents orders from being created for invalid or missing customers.
         CustomerResponse customerResponse =
                 customerClinet.getCustomerById(orderDetails.getCustomerId());
 
-        // 2. validate delivery address belongs to customer, attach it
+        // 2. Validate the selected delivery address belongs to the same customer.
+        // The address is attached to the response so the client can see the delivery details.
         AddressRespose addressResponse = customerClinet.getAddressByCustomerAndAddressId(
                 orderDetails.getCustomerId(), orderDetails.getDeliveryAddressId());
         customerResponse.setAddress(addressResponse);
 
-        // 3. validate restaurant is OPEN
+        // 3. Check restaurant availability before creating an order.
+        // Only restaurants that are OPEN can accept new orders.
         ResturantResponse resturantResponse =
                 resturnatClinet.getResturentDetailsById(orderDetails.getRestaurantId());
         if (!"OPEN".equalsIgnoreCase(resturantResponse.getStatus())) {
             throw new RuntimeException("Restaurant is not OPEN");
         }
 
-        // 4. fetch each menu item + calculate subtotal
+        // 4. Fetch each menu item and calculate the subtotal from the ordered quantity.
+        // This is required to validate prices and build the final total before saving the order.
         List<MenuitemsResponse> menuitems = new ArrayList<>();
         BigDecimal subtotal = BigDecimal.ZERO;
         for (OrderItems orderItem : orderDetails.getItems()) {
@@ -69,13 +77,15 @@ public class OrderService {
             menuitems.add(menuitem);
         }
 
-        // 5. price calculation
+        // 5. Calculate the final order price.
+        // Tax is 5%, delivery fee is fixed, and total is subtotal + tax + delivery fee.
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.05))
                 .setScale(2, RoundingMode.HALF_UP);
         BigDecimal deliveryFee = BigDecimal.valueOf(40);
         BigDecimal totalAmount = subtotal.add(tax).add(deliveryFee);
 
-        // 6. save order
+        // 6. Save the order in the database with the initial status and payment state.
+        // The order starts in CREATED and PENDING until payment is successful.
         orderDetails.setStatus("CREATED");
         orderDetails.setSubtotal(subtotal);
         orderDetails.setTax(tax);
@@ -86,13 +96,28 @@ public class OrderService {
         orderDetails.setUpdatedAt(LocalDateTime.now());
         OrderDetails saved = orderDetailesRepo.save(orderDetails);
 
-        // 6b. persist order items
+        // 6b. Save each order item with the generated order id.
+        // This keeps the item list linked to the order in a separate table.
         for (OrderItems item : orderDetails.getItems()) {
             item.setOrderId(saved.getId());
             orderitemsRepo.save(item);
         }
 
-        // 7. build response
+        // 7. Publish ORDER_PLACED event to Kafka.
+        // Other services like Kitchen and Notification listen to this event to start their work.
+        OrderPlacedEvent event = new OrderPlacedEvent();
+
+        event.setEventId(java.util.UUID.randomUUID().toString());
+        event.setEventType("ORDER_PLACED");
+        event.setOrderId(saved.getId());
+        event.setCustomerId(saved.getCustomerId());
+        event.setRestaurantId(saved.getRestaurantId());
+        event.setTotalAmount(saved.getTotalAmount());
+        event.setCreatedAt(saved.getCreatedAt());
+
+        orderEventPublisher.publishOrderPlaced(event);
+
+        // 8. Build the response object returned to the client.
         OrderResponse resp = new OrderResponse();
         resp.setOrderId(saved.getId());
         resp.setCustomerDetails(customerResponse);
