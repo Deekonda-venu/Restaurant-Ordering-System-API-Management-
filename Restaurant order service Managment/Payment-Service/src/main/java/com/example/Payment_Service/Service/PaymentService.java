@@ -33,13 +33,15 @@ public class PaymentService {
 
     public PaymentRespose createPayment(paymentRequestBody paymentRequestBody) {
 
-        // 1. validate order exists before creating payment
+        // 1. Validate the order before processing a payment.
+        // If the order does not exist, no payment should be created.
         if (paymentRequestBody.getOrderId() == null) {
             throw new RuntimeException("Order id is required");
         }
         orderServiceClient.getOrderById(paymentRequestBody.getOrderId());
 
-        // 2. prevent duplicate successful payment on same order
+        // 2. Prevent duplicate successful payments for the same order.
+        // This protects the business rule: one successful payment per order.
         List<PaymentDetails> existingPayments = paymentDetailsRepo.findByOrderId(paymentRequestBody.getOrderId());
         boolean alreadyPaid = existingPayments.stream()
                 .anyMatch(payment -> "SUCCESS".equalsIgnoreCase(payment.getStatus()));
@@ -47,10 +49,11 @@ public class PaymentService {
             throw new RuntimeException("Payment already completed for this order");
         }
 
-        // 3. validate customer exists
+        // 3. Make sure the customer exists before assigning the payment to them.
         CustomerRespose customer = customerClinet.getCustomerById(paymentRequestBody.getCustomerId());
 
-        // 4. build and persist payment
+        // 4. Build and save the payment record.
+        // This is the actual payment transaction in the payment database.
         PaymentDetails payment = new PaymentDetails();
         payment.setOrderId(paymentRequestBody.getOrderId());
         payment.setCustomerId(customer.getId());
@@ -62,7 +65,8 @@ public class PaymentService {
         payment.setCreatedAt(LocalDateTime.now());
         PaymentDetails saved = paymentDetailsRepo.save(payment);
 
-//        Kafka
+        // 5. Publish a payment event to Kafka.
+        // Order service listens for this event and updates the order paymentStatus.
         PaymentEvent event = new PaymentEvent();
 
         event.setEventType(
@@ -80,7 +84,8 @@ public class PaymentService {
         event.setOccurredAt(LocalDateTime.now());
 
         paymentEventPublisher.publish(event);
-        // 5. build response
+
+        // 6. Return DTO response to the caller.
         return toResponse(saved);
     }
 
