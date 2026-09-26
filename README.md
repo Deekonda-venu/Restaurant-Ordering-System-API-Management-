@@ -5,3 +5,4 @@ Developed a Spring Boot microservices-based Restaurant Ordering System using MyS
 
 - [Run and API guide](Restaurant%20order%20service%20Managment/RUNNING_AND_API_GUIDE.md)
 - [Detailed API documentation](Restaurant%20order%20service%20Managment/API_Documentation.md)
+- [Interview preparation](Restaurant%20order%20service%20Managment/INTERVIEW_PREPARATION.md)
