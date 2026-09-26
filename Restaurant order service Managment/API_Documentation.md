@@ -9,7 +9,7 @@ A synchronous (OpenFeign) microservices system. Each service owns its own databa
 | Customer-Service | `/API/customer/v1` | `9293` | `CustomerService` |
 | Resturant | `/API/resturant/v1` | `9191` | `ResturantService` |
 | MenuItemsService | `/API/menuitems/v1` | `9292` | `MenuService` |
-| Order_Service | `/API/Order/v1` | `9294` | `OrderService` |
+| Order_Service | `/API/Order/v1` | `9999` | `OrderService` |
 | Payment-Service | `/API/Payments/v1` | `9295` | `PaymentService` |
 
 ---
@@ -305,7 +305,7 @@ Partial update.
 
 ---
 
-# 4. Order_Service (`http://localhost:9294`)
+# 4. Order_Service (`http://localhost:9999`)
 
 ## POST `/API/Order/v1/CreateOrder`
 Create an order. Validates customer, address, restaurant (`OPEN`) and menu items via Feign, then computes prices.
@@ -400,14 +400,6 @@ CONFIRMED
 
 ## POST `/API/Order/v1/orders/{orderId}/cancel`
 Cancel an order. **Response `200`**: `OrderResponse` with `status: CANCELLED`.
-
-## GET `/API/Order/v1/orders/{orderId}/Currentstatus`
-Get just the current status.
-
-**Response `200`**
-```json
-{ "orderId": 1, "status": "CREATED" }
-```
 
 ---
 
