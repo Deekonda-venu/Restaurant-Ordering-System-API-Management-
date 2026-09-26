@@ -317,7 +317,7 @@ That's all the theory. Now we build.
 
 # 9. The project plan (what we build)
 
-You already have (sync, MySQL): Customer 9293, Resturant 9191, Menu 9292, Order 9294, Payment 9295.
+You already have (sync, MySQL): Customer 9293, Resturant 9191, Menu 9292, Order 9999, Payment 9295.
 
 We add (async, MongoDB):
 - **Kitchen 9296** — listens for `ORDER_PLACED`, makes a cooking ticket, can mark `PREPARING`/`READY`, publishes `ORDER_READY`.
@@ -428,8 +428,8 @@ orderEventPublisher.publishOrderPlaced(event);
 2. Start Order Service: `mvn spring-boot:run` in the `Order_Service` folder.
 3. Place an order:
 ```bash
-curl -X POST http://localhost:9294/API/Order/v1/CreateOrder \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:9999/API/Order/v1/CreateOrder \
+    -H "Content-Type: application/json" \
   -d '{"customerId":1,"restaurantId":1,"deliveryAddressId":1,"items":[{"menuItemId":1,"quantity":2}]}'
 ```
 4. Open Kafka UI (8090) → Topics → `order-events` → Messages. **You should see your event.**
@@ -922,13 +922,13 @@ public class DeliveryController {
 
 **Start order:**
 1. `docker compose -f docker-compose-infra.yml up -d`  (Kafka + Mongo)
-2. Sync services: Resturant 9191, Menu 9292, Customer 9293, Order 9294, Payment 9295
+2. Sync services: Resturant 9191, Menu 9292, Customer 9293, Order 9999, Payment 9295
 3. Async services: Kitchen 9296, Notification 9297, Delivery 9298
 
 **The whole story (run these in order):**
 ```bash
 # place order -> ORDER_PLACED
-curl -X POST http://localhost:9294/API/Order/v1/CreateOrder -H "Content-Type: application/json" \
+curl -X POST http://localhost:9999/API/Order/v1/CreateOrder -H "Content-Type: application/json" \
   -d '{"customerId":1,"restaurantId":1,"deliveryAddressId":1,"items":[{"menuItemId":1,"quantity":2}]}'
 #   Kitchen: RECEIVED ticket | Notification: "order placed"
 

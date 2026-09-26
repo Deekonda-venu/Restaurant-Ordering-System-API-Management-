@@ -2,7 +2,7 @@
 
 This guide takes the project **from the current state (sync services + Payment) to a full event-driven system** using **Kafka + MongoDB**. It contains every file you need, in the order to create them.
 
-> You already have (sync, MySQL): **Customer (9293)**, **Resturant (9191)**, **Menu (9292)**, **Order (9294)**, **Payment (9295)**.
+> You already have (sync, MySQL): **Customer (9293)**, **Resturant (9191)**, **Menu (9292)**, **Order (9999)**, **Payment (9295)**.
 > You will add (async, MongoDB): **Kitchen (9296)**, **Notification (9297)**, **Delivery (9298)**.
 
 ---
@@ -769,7 +769,7 @@ public class DeliveryController {
 ## 7. Full Run Order
 
 1. **Infra:** `docker compose -f docker-compose-infra.yml up -d`
-2. **MySQL sync services:** Resturant (9191), Menu (9292), Customer (9293), Order (9294), Payment (9295)
+2. **MySQL sync services:** Resturant (9191), Menu (9292), Customer (9293), Order (9999), Payment (9295)
 3. **Async services:** Kitchen (9296), Notification (9297), Delivery (9298)
 
 Each service: `mvn spring-boot:run` in its own terminal.
@@ -782,7 +782,7 @@ Each service: `mvn spring-boot:run` in its own terminal.
 # 1) Seed data (customer, address, restaurant, menu) as in API_Documentation.md, then:
 
 # 2) Place order  -> Order publishes ORDER_PLACED
-curl -X POST http://localhost:9294/API/Order/v1/CreateOrder \
+curl -X POST http://localhost:9999/API/Order/v1/CreateOrder \
   -H "Content-Type: application/json" \
   -d '{"customerId":1,"restaurantId":1,"deliveryAddressId":1,"items":[{"menuItemId":1,"quantity":2}]}'
 #   => Kitchen console: "created RECEIVED ticket"

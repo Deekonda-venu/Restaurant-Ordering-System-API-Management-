@@ -24,7 +24,7 @@ This document covers **(A)** how to run the whole system locally, **(B)** the ex
 | Customer-Service | `9293` | `/API/customer/v1` | `CustomerDetails` | `customer_details`, `addresses` |
 | Resturant | `9191` | `/API/resturant/v1` | `resturant` | `resturant_details` |
 | MenuItemsService | `9292` | `/API/menuitems/v1` | `MenuItems` | `menu_items` |
-| Order_Service | `9294` | `/API/Order/v1` | `OrderService` | `orders`, `order_items` |
+| Order_Service | `9999` | `/API/Order/v1` | `OrderService` | `orders`, `order_items` |
 | Payment-Service | `9295` | `/API/Payments/v1` | `PaymentService` | `payments` |
 
 > Note: `ddl-auto=update` means Hibernate **auto-creates/updates tables** on startup. The full SQL in Part B is provided for reference or if you prefer to create schemas manually.
@@ -71,7 +71,7 @@ mvn spring-boot:run
 cd "/Users/vdeekond/Desktop/Spring_-_Springboot/Microservies(openfeignclint)Sync/Customer-Service"
 mvn spring-boot:run
 ```
-**4) Order_Service (9294)**
+**4) Order_Service (9999)**
 ```bash
 cd "/Users/vdeekond/Desktop/Spring_-_Springboot/Microservies(openfeignclint)Sync/Order_Service"
 mvn spring-boot:run
@@ -98,7 +98,7 @@ curl -X POST http://localhost:9191/API/resturant/v1/AddResturntdetails \
   -d '{"resturantName":"Harsh Resturant","city":"Hyderabad"}'
 
 # 3. order
-curl -X POST http://localhost:9294/API/Order/v1/CreateOrder \
+curl -X POST http://localhost:9999/API/Order/v1/CreateOrder \
   -H "Content-Type: application/json" \
   -d '{"customerId":1,"restaurantId":1,"deliveryAddressId":1,"items":[{"menuItemId":1,"quantity":2}]}'
 

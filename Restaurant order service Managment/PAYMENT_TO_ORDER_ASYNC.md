@@ -228,10 +228,10 @@ public class PaymentEventConsumer {
    ```bash
    docker compose -f docker-compose-infra.yml up -d
    ```
-2. **Start Order Service (9294)** and **Payment Service (9295)** — `mvn spring-boot:run` in each folder.
+2. **Start Order Service (9999)** and **Payment Service (9295)** — use each service's Maven wrapper.
 3. **Create an order** (note the `orderId`; its `paymentStatus` will be `PENDING`):
    ```bash
-   curl -X POST http://localhost:9294/API/Order/v1/CreateOrder \
+    curl -X POST http://localhost:9999/API/Order/v1/CreateOrder \
      -H "Content-Type: application/json" \
      -d '{"customerId":1,"restaurantId":1,"deliveryAddressId":1,"items":[{"menuItemId":1,"quantity":2}]}'
    ```
@@ -247,7 +247,7 @@ public class PaymentEventConsumer {
    ```
 6. **Confirm** the order changed:
    ```bash
-   curl http://localhost:9294/API/Order/v1/GetOrderById/1
+    curl http://localhost:9999/API/Order/v1/GetOrderById/1
    ```
    `paymentStatus` should now be `SUCCESS`.
 7. (Optional) Open **Kafka UI** at http://localhost:8090 → topic `payment-events` → see your message.
