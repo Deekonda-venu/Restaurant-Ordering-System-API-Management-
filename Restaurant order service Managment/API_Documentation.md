@@ -487,6 +487,159 @@ Refund a payment. Only a payment currently in `SUCCESS` can be refunded.
 
 ---
 
+# 6. Kitchen-Service (`http://localhost:9296`)
+
+Kitchen tickets are created automatically when Kitchen consumes an `ORDER_PLACED` event from Kafka. There is no REST endpoint to create a ticket manually. Use the `orderId` returned by `CreateOrder`.
+
+## PATCH `/api/kitchen/orders/{orderId}/status`
+Update a kitchen ticket. Supported status values are `PREPARING` and `READY`. Each update is saved to MongoDB and publishes `ORDER_PREPARING` or `ORDER_READY` to the `kitchen-events` topic.
+
+**Request** — mark order 1 as preparing:
+```json
+{
+  "status": "PREPARING"
+}
+```
+
+**Request** — mark order 1 ready:
+```json
+{
+  "status": "READY"
+}
+```
+
+**PowerShell example**
+```powershell
+Invoke-RestMethod -Method Patch `
+  -Uri "http://localhost:9296/api/kitchen/orders/1/status" `
+  -ContentType "application/json" `
+  -Body '{"status":"PREPARING"}'
+```
+
+**Response `200`** — example after the `READY` update:
+```json
+{
+  "id": "66f5a14dd68a2b3f9d201abc",
+  "orderId": 1,
+  "restaurantId": 1,
+  "status": "READY",
+  "receivedAt": "2026-09-26T12:00:00",
+  "startedAt": "2026-09-26T12:02:00",
+  "readyAt": "2026-09-26T12:18:00"
+}
+```
+
+The ticket must already exist; otherwise the service reports that the kitchen order was not found.
+
+---
+
+# 7. Delivery-Service (`http://localhost:9298`)
+
+A delivery record is created automatically when Delivery consumes an `ORDER_READY` event from `kitchen-events`. The initial status is `READY_FOR_PICKUP`.
+
+## POST `/api/deliveries/{orderId}/assign-driver`
+Assign a driver to an existing delivery.
+
+**Request**
+```json
+{
+  "driverId": 12
+}
+```
+
+**PowerShell example**
+```powershell
+Invoke-RestMethod -Method Post `
+  -Uri "http://localhost:9298/api/deliveries/1/assign-driver" `
+  -ContentType "application/json" `
+  -Body '{"driverId":12}'
+```
+
+**Response `200`** — example:
+```json
+{
+  "id": "66f5a20ad68a2b3f9d201abd",
+  "orderId": 1,
+  "customerId": null,
+  "restaurantId": 1,
+  "driverId": 12,
+  "status": "READY_FOR_PICKUP",
+  "pickupTime": null,
+  "deliveryTime": null,
+  "createdAt": "2026-09-26T12:18:01"
+}
+```
+
+## PATCH `/api/deliveries/{orderId}/status`
+Update delivery status. Supported values are `PICKED_UP`, `ON_THE_WAY`, and `DELIVERED`. Each update is saved in MongoDB and publishes an event to `delivery-events`.
+
+**Request**
+```json
+{
+  "status": "PICKED_UP"
+}
+```
+
+**PowerShell example** — repeat with `ON_THE_WAY` and then `DELIVERED` to complete the workflow:
+```powershell
+Invoke-RestMethod -Method Patch `
+  -Uri "http://localhost:9298/api/deliveries/1/status" `
+  -ContentType "application/json" `
+  -Body '{"status":"PICKED_UP"}'
+```
+
+**Response `200`** — example after delivery is complete:
+```json
+{
+  "id": "66f5a20ad68a2b3f9d201abd",
+  "orderId": 1,
+  "customerId": null,
+  "restaurantId": 1,
+  "driverId": 12,
+  "status": "DELIVERED",
+  "pickupTime": "2026-09-26T12:20:00",
+  "deliveryTime": "2026-09-26T12:45:00",
+  "createdAt": "2026-09-26T12:18:01"
+}
+```
+
+**Current data note:** the Kitchen consumer does not copy `customerId` onto its MongoDB ticket, and its `ORDER_READY` event therefore omits it. As a result, the Delivery record and its later events can have `customerId: null` until that field is propagated through the Kitchen workflow.
+
+---
+
+# 8. Notification-Service (`http://localhost:9297`)
+
+Notification currently has **no REST API**. It consumes Kafka events and prints notification text to its console. Start the service and Kafka, then trigger the workflow through Order, Payment, Kitchen, or Delivery APIs above.
+
+| Kafka topic | Example event type | Console message |
+|---|---|---|
+| `order-events` | `ORDER_PLACED` | `Your order #1 has been placed.` |
+| `payment-events` | `PAYMENT_SUCCESS` | `Payment successful for order #1.` |
+| `kitchen-events` | `ORDER_READY` | `Your food for order #1 is ready.` |
+| `delivery-events` | `ORDER_DELIVERED` | `Your order #1 was delivered.` |
+
+**Example event** consumed from `order-events`:
+```json
+{
+  "eventId": "f504a39f-fc15-4a82-930c-e409930b4439",
+  "eventType": "ORDER_PLACED",
+  "orderId": 1,
+  "customerId": 1,
+  "restaurantId": 1,
+  "totalAmount": 376.00,
+  "createdAt": "2026-09-26T12:00:00"
+}
+```
+
+The Notification console prints a line like:
+```text
+NOTIFICATION: customer=1, order=1, message=Your order #1 has been placed.
+```
+
+To inspect messages, open Kafka UI at `http://localhost:8090` and view `order-events`, `payment-events`, `kitchen-events`, or `delivery-events`.
+
+---
+
 # Common Error Response
 
 Failed validations currently surface as `500` with this shape:

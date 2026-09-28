@@ -251,7 +251,7 @@ spring.application.name=Kitchen-Service
 server.port=9296
 
 # MongoDB (own database)
-spring.data.mongodb.uri=mongodb://root:root@localhost:27017/kitchen_db?authSource=admin
+spring.mongodb.uri=mongodb://root:root@localhost:27017/kitchen_db?authSource=admin
 
 # Kafka consumer
 spring.kafka.bootstrap-servers=localhost:9092
@@ -486,7 +486,7 @@ Same as Kitchen (web + data-mongodb + spring-kafka + lombok). MongoDB is optiona
 spring.application.name=Notification-Service
 server.port=9297
 
-spring.data.mongodb.uri=mongodb://root:root@localhost:27017/notification_db?authSource=admin
+spring.mongodb.uri=mongodb://root:root@localhost:27017/notification_db?authSource=admin
 
 spring.kafka.bootstrap-servers=localhost:9092
 spring.kafka.consumer.group-id=notification-service
@@ -568,7 +568,7 @@ Same as Kitchen (web + data-mongodb + spring-kafka + lombok).
 spring.application.name=Delivery-Service
 server.port=9298
 
-spring.data.mongodb.uri=mongodb://root:root@localhost:27017/delivery_db?authSource=admin
+spring.mongodb.uri=mongodb://root:root@localhost:27017/delivery_db?authSource=admin
 
 spring.kafka.bootstrap-servers=localhost:9092
 spring.kafka.consumer.group-id=delivery-service
