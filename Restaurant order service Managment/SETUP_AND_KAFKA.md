@@ -548,7 +548,7 @@ In each Mongo-backed service's `pom.xml` (Kitchen / Notification / Delivery) —
 Each service gets its **own database name** (one DB per service):
 ```properties
 # Kitchen Service example
-spring.data.mongodb.uri=mongodb://root:root@localhost:27017/kitchen_db?authSource=admin
+spring.mongodb.uri=mongodb://root:root@localhost:27017/kitchen_db?authSource=admin
 ```
 Notification → `notification_db`, Delivery → `delivery_db`.
 

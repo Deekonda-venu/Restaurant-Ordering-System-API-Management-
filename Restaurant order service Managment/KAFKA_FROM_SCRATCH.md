@@ -451,7 +451,7 @@ Then create these files (package base `com.example.Kitchen_Service`):
 spring.application.name=Kitchen-Service
 server.port=9296
 
-spring.data.mongodb.uri=mongodb://root:root@localhost:27017/kitchen_db?authSource=admin
+spring.mongodb.uri=mongodb://root:root@localhost:27017/kitchen_db?authSource=admin
 
 spring.kafka.bootstrap-servers=localhost:9092
 spring.kafka.consumer.group-id=kitchen-service
@@ -732,7 +732,7 @@ New Spring Boot project (base `com.example.Delivery_Service`), dependencies: Spr
 spring.application.name=Delivery-Service
 server.port=9298
 
-spring.data.mongodb.uri=mongodb://root:root@localhost:27017/delivery_db?authSource=admin
+spring.mongodb.uri=mongodb://root:root@localhost:27017/delivery_db?authSource=admin
 
 spring.kafka.bootstrap-servers=localhost:9092
 spring.kafka.consumer.group-id=delivery-service
